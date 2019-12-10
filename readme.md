@@ -2,6 +2,8 @@
 
 將 dotnet 預設範例網站包進 docker 的練習
 
+ref:[Docker 教學 - 打包 ASP.NET Core 前後端專案 Docker Image](https://blog.johnwu.cc/article/docker-build-asp-net-core-image.html)
+
 ## 建立 dockerfile
 
 ```dockerfile
@@ -55,5 +57,3 @@ ENTRYPOINT dotnet $project_dll
 # docker build -f build/build-image.dockerfile -t test --build-arg project_name=aspMVC .
 
 ```
-
-
