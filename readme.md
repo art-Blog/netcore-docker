@@ -2,7 +2,7 @@
 
 將 dotnet 預設範例網站包進 docker 的練習
 
-ref:[Docker 教學 - 打包 ASP.NET Core 前後端專案 Docker Image](https://blog.johnwu.cc/article/docker-build-asp-net-core-image.html)
+ref site:[Docker 教學 - 打包 ASP.NET Core 前後端專案 Docker Image](https://blog.johnwu.cc/article/docker-build-asp-net-core-image.html)
 
 ## 建立 dockerfile
 
@@ -55,5 +55,47 @@ ENV project_dll="${project_name}.dll"
 ENTRYPOINT dotnet $project_dll
 
 # docker build -f build/build-image.dockerfile -t test --build-arg project_name=aspMVC .
+
+```
+
+## 編譯前端專案
+
+
+```dockerfile
+# build/build-image.dockerfile
+### build stage
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0 AS dotnet-build-env
+ARG project_name
+COPY ./src ./src
+WORKDIR /src
+RUN dotnet publish $project_name -o /publish --configuration Release
+
+
+### Build Stage - npm
+FROM node:11 AS npm-build-env
+ARG project_name
+RUN mkdir -p /publish
+RUN npm set progress=false;
+COPY ./src /src
+WORKDIR /src/$project_name
+RUN if [ -f "package.json" ]; then \
+        npm i; \
+        npm run build; \
+        if [ -d "wwwroot" ]; then cp -R wwwroot /publish; fi; \
+    fi
+
+
+### publish stage
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.0 AS runtime
+ARG project_name
+WORKDIR /app
+COPY --from=dotnet-build-env /publish .
+COPY --from=npm-build-env /publish .
+ENV project_dll="${project_name}.dll"
+ENTRYPOINT dotnet $project_dll
+
+# sample
+# docker build -f build/build-image.dockerfile -t test --build-arg project_name=aspMVC .
+# docker run -d --name=mytest --rm -p 8002:80 test
 
 ```
