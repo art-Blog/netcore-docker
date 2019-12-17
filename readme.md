@@ -99,3 +99,36 @@ ENTRYPOINT dotnet $project_dll
 # docker run -d --name=mytest --rm -p 8002:80 test
 
 ```
+
+## 使用docker-compose建立
+```yaml
+version: '3'
+
+services:
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - web1
+      - web2
+    ports:
+      - 8888:80 
+  web1:
+    build: 
+      context: .
+      dockerfile: build/build-image.dockerfile
+      args:
+        project_name: $project_name
+    ports:
+      - '8001:80'
+  web2:
+    build:
+      context: .
+      dockerfile: build/build-image.dockerfile
+      args:
+        project_name: $project_name
+    ports:
+      - '8002:80'
+```
